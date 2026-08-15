@@ -17,11 +17,13 @@ Future<void> _showInsistentNotification(RemoteMessage message) async {
   print("Showing insistent alarm for: ${message.data}");
   final AndroidNotificationDetails androidPlatformChannelSpecifics =
       AndroidNotificationDetails(
-    'alarm_clock_channel',
+    'alarm_clock_channel_v2',
     'Alarm Clock Notifications',
     channelDescription: 'Loud, continuous ringing alarms for tasks',
     importance: Importance.max,
     priority: Priority.high,
+    playSound: true,
+    audioAttributesUsage: AudioAttributesUsage.alarm,
     additionalFlags: Int32List.fromList(<int>[4]), // FLAG_INSISTENT = 4
   );
   final NotificationDetails platformChannelSpecifics =
@@ -57,10 +59,11 @@ void main() async {
     await flutterLocalNotificationsPlugin.initialize(settings: initializationSettings);
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'alarm_clock_channel',
+      'alarm_clock_channel_v2',
       'Alarm Clock Notifications',
       description: 'Loud, continuous ringing alarms for tasks',
       importance: Importance.max,
+      playSound: true,
     );
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
