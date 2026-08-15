@@ -34,6 +34,13 @@ async def check_due_tasks():
                                             title="Task Due!",
                                             body=task.get('title', 'You have a task due now.')
                                         ),
+                                        android=messaging.AndroidConfig(
+                                            priority='high',
+                                            notification=messaging.AndroidNotification(
+                                                sound='default',
+                                                channel_id='default',
+                                            ),
+                                        ),
                                         tokens=tokens
                                     )
                                     messaging.send_each_for_multicast(message)

@@ -375,7 +375,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTaskCard(List<TaskItem> tasks) {
+  Widget _buildTaskCard(List<TaskItem> allTasks) {
+    // Filter out tasks that have passed
+    final tasks = allTasks.where((t) {
+      if (t.dueTime == null) return true;
+      try {
+        final dt = DateTime.parse(t.dueTime!);
+        // Hide if the time has already passed
+        return dt.isAfter(DateTime.now().subtract(const Duration(minutes: 1)));
+      } catch (_) {
+        return true;
+      }
+    }).toList();
+
     final completedCount = tasks.where((t) => t.completed).length;
     final totalCount = tasks.length;
     
