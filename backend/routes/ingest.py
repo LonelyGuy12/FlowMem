@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from ..firebase_db import get_firestore
-from ..groq_service import transcribe_audio, parse_transcript
+from firebase_db import get_firestore
+from groq_service import transcribe_audio, parse_transcript
 from firebase_admin import firestore
 import datetime
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from ..firebase_db import get_firestore
+from firebase_db import get_firestore
 from firebase_admin import firestore
 
 router = APIRouter()
