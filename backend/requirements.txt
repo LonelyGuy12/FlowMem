@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+groq
+firebase-admin
+pydantic
+pydantic-settings
+python-multipart
