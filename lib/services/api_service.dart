@@ -4,7 +4,7 @@ import '../models/models.dart';
 
 class ApiService {
   // Use 10.0.2.2 for Android emulator to localhost mapping
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  static const String baseUrl = 'https://flowmem.onrender.com/api';
 
   Future<DashboardData?> fetchDashboard() async {
     try {
