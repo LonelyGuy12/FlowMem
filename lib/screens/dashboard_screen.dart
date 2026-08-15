@@ -12,6 +12,18 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  // Vercel AMOLED Colors
+  static const vercelBlack = Color(0xFF000000);
+  static const vercelGray = Color(0xFF1A1A1A);
+  static const vercelBorder = Color(0xFF2A2A2A);
+  static const vercelAccent = Color(0xFF0070F3);
+  static const vercelSuccess = Color(0xFF0DBC79);
+  static const vercelError = Color(0xFFE00);
+  static const vercelWarning = Color(0xFFF5A623);
+  static const vercelTextPrimary = Color(0xFFFFFFFF);
+  static const vercelTextSecondary = Color(0xFFA1A1A1);
+  static const vercelTextTertiary = Color(0xFF666666);
+
   @override
   void initState() {
     super.initState();
@@ -23,122 +35,444 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        title: const Text('FlowMem', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.deepPurple,
-        elevation: 0,
-      ),
-      body: Consumer<DashboardProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading && provider.data == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          final data = provider.data;
-          if (data == null) {
-            return const Center(child: Text('Failed to load data', style: TextStyle(color: Colors.white)));
-          }
+      backgroundColor: vercelBlack,
+      body: SafeArea(
+        child: Consumer<DashboardProvider>(
+          builder: (context, provider, child) {
+            if (provider.isLoading && provider.data == null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(vercelAccent),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Loading...',
+                      style: TextStyle(color: vercelTextSecondary, fontSize: 14),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            final data = provider.data;
+            if (data == null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 48, color: vercelError),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Failed to load data',
+                      style: TextStyle(color: vercelTextPrimary, fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => provider.loadDashboard(),
+                      child: Text('Retry', style: TextStyle(color: vercelAccent)),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-          return RefreshIndicator(
-            onRefresh: () => provider.loadDashboard(),
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                _buildExpenseCard(data.expenses),
-                const SizedBox(height: 16),
-                _buildTaskCard(data.tasks),
-                const SizedBox(height: 16),
-                _buildHealthCard(data.healthLogs),
-                const SizedBox(height: 16),
-                _buildJournalCard(data.journalEntries),
-                const SizedBox(height: 100), // Space for FAB
-              ],
-            ),
-          );
-        },
+            return RefreshIndicator(
+              onRefresh: () => provider.loadDashboard(),
+              color: vercelAccent,
+              backgroundColor: vercelGray,
+              child: CustomScrollView(
+                slivers: [
+                  // Custom App Bar
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'FlowMem',
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: vercelTextPrimary,
+                                      letterSpacing: -1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _getGreeting(),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: vercelTextSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: vercelGray,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: vercelBorder),
+                                ),
+                                child: Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: vercelTextSecondary,
+                                  size: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // Content
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        _buildExpenseCard(data.expenses),
+                        const SizedBox(height: 16),
+                        _buildTaskCard(data.tasks),
+                        const SizedBox(height: 16),
+                        _buildHealthCard(data.healthLogs),
+                        const SizedBox(height: 16),
+                        _buildJournalCard(data.journalEntries),
+                        const SizedBox(height: 120), // Space for FAB
+                      ]),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: const RecorderWidget(),
     );
   }
 
-  Widget _buildCard({required String title, required Widget child, required IconData icon}) {
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+
+  Widget _buildCard({
+    required String title,
+    required Widget child,
+    required IconData icon,
+    Color? iconColor,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          )
-        ],
+        color: vercelGray,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: vercelBorder, width: 1),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: Colors.deepPurpleAccent),
-              const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: (iconColor ?? vercelAccent).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: iconColor ?? vercelAccent,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: vercelTextPrimary,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            child,
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildExpenseCard(List<Expense> expenses) {
     double total = expenses.fold(0.0, (sum, item) => sum + item.amount);
+    
     return _buildCard(
       title: 'Expenses',
-      icon: Icons.attach_money,
+      icon: Icons.account_balance_wallet_rounded,
+      iconColor: vercelSuccess,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Total: \$$total', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.greenAccent)),
-          const SizedBox(height: 8),
-          ...expenses.map((e) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(e.category, style: const TextStyle(color: Colors.white70)),
-                Text('${e.currency} ${e.amount}', style: const TextStyle(color: Colors.white)),
-              ],
+          Row(
+            children: [
+              Text(
+                '\$${total.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: vercelTextPrimary,
+                  letterSpacing: -1,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: vercelSuccess.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'Total',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: vercelSuccess,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (expenses.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: vercelBlack,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: vercelBorder),
+              ),
+              child: Column(
+                children: expenses.asMap().entries.map((entry) {
+                  final e = entry.value;
+                  final isLast = entry.key == expenses.length - 1;
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: vercelSuccess,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                e.category,
+                                style: TextStyle(
+                                  color: vercelTextPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${e.currency} ${e.amount.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: vercelTextSecondary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isLast)
+                        Divider(color: vercelBorder, height: 1),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
-          )).toList(),
+          ] else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No expenses recorded',
+                style: TextStyle(color: vercelTextTertiary, fontSize: 14),
+              ),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildTaskCard(List<TaskItem> tasks) {
+    final completedCount = tasks.where((t) => t.completed).length;
+    final totalCount = tasks.length;
+    
     return _buildCard(
       title: 'Tasks',
-      icon: Icons.check_circle_outline,
+      icon: Icons.check_circle_rounded,
+      iconColor: vercelAccent,
       child: Column(
-        children: tasks.map((t) => ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(
-            t.completed ? Icons.check_circle : Icons.circle_outlined,
-            color: t.completed ? Colors.green : Colors.grey,
-          ),
-          title: Text(t.title, style: TextStyle(
-            color: Colors.white,
-            decoration: t.completed ? TextDecoration.lineThrough : null,
-          )),
-          subtitle: t.dueTime != null ? Text(t.dueTime!, style: const TextStyle(color: Colors.white54)) : null,
-          trailing: Text(t.priority, style: TextStyle(
-            color: t.priority == 'high' ? Colors.redAccent : Colors.orangeAccent,
-          )),
-        )).toList(),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (totalCount > 0) ...[
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: vercelAccent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '$completedCount / $totalCount completed',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: vercelAccent,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (tasks.isNotEmpty)
+            Container(
+              decoration: BoxDecoration(
+                color: vercelBlack,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: vercelBorder),
+              ),
+              child: Column(
+                children: tasks.asMap().entries.map((entry) {
+                  final t = entry.value;
+                  final isLast = entry.key == tasks.length - 1;
+                  final priorityColor = t.priority == 'high' 
+                      ? vercelError 
+                      : t.priority == 'medium' 
+                          ? vercelWarning 
+                          : vercelTextTertiary;
+                  
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Icon(
+                              t.completed 
+                                  ? Icons.check_circle_rounded 
+                                  : Icons.radio_button_unchecked_rounded,
+                              color: t.completed ? vercelSuccess : vercelTextTertiary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    t.title,
+                                    style: TextStyle(
+                                      color: t.completed ? vercelTextTertiary : vercelTextPrimary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      decoration: t.completed ? TextDecoration.lineThrough : null,
+                                    ),
+                                  ),
+                                  if (t.dueTime != null) ...[
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time_rounded,
+                                          size: 12,
+                                          color: vercelTextTertiary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          t.dueTime!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: vercelTextTertiary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: priorityColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                t.priority.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: priorityColor,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isLast)
+                        Divider(color: vercelBorder, height: 1),
+                    ],
+                  );
+                }).toList(),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No tasks yet',
+                style: TextStyle(color: vercelTextTertiary, fontSize: 14),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -146,35 +480,157 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildHealthCard(List<HealthLog> healthLogs) {
     return _buildCard(
       title: 'Health & Mood',
-      icon: Icons.favorite_border,
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: healthLogs.map((h) => Chip(
-          backgroundColor: Colors.pinkAccent.withOpacity(0.2),
-          label: Text(h.moodOrState, style: const TextStyle(color: Colors.pinkAccent)),
-        )).toList(),
+      icon: Icons.favorite_rounded,
+      iconColor: Color(0xFFFF006B),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (healthLogs.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: healthLogs.map((h) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: vercelBlack,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: vercelBorder),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _getMoodEmoji(h.moodOrState),
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        h.moodOrState,
+                        style: TextStyle(
+                          color: vercelTextPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No health logs yet',
+                style: TextStyle(color: vercelTextTertiary, fontSize: 14),
+              ),
+            ),
+        ],
       ),
     );
+  }
+
+  String _getMoodEmoji(String mood) {
+    final moodLower = mood.toLowerCase();
+    if (moodLower.contains('happy') || moodLower.contains('great') || moodLower.contains('excited')) {
+      return '😊';
+    } else if (moodLower.contains('sad') || moodLower.contains('down')) {
+      return '😔';
+    } else if (moodLower.contains('stress') || moodLower.contains('anxious')) {
+      return '😰';
+    } else if (moodLower.contains('calm') || moodLower.contains('peaceful')) {
+      return '😌';
+    } else if (moodLower.contains('tired') || moodLower.contains('exhausted')) {
+      return '😴';
+    } else if (moodLower.contains('angry') || moodLower.contains('frustrated')) {
+      return '😠';
+    }
+    return '😊';
   }
 
   Widget _buildJournalCard(List<JournalEntry> journalEntries) {
     return _buildCard(
       title: 'Journal',
-      icon: Icons.book_outlined,
+      icon: Icons.menu_book_rounded,
+      iconColor: vercelWarning,
       child: Column(
-        children: journalEntries.map((j) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(j.summary, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text(j.transcript, style: const TextStyle(color: Colors.white54, fontStyle: FontStyle.italic)),
-              const Divider(color: Colors.white24),
-            ],
-          ),
-        )).toList(),
+        children: [
+          if (journalEntries.isNotEmpty)
+            ...journalEntries.asMap().entries.map((entry) {
+              final j = entry.value;
+              final isLast = entry.key == journalEntries.length - 1;
+              return Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: vercelBlack,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: vercelBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: vercelWarning,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                j.summary,
+                                style: TextStyle(
+                                  color: vercelTextPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (j.transcript.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: vercelGray,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: vercelBorder),
+                            ),
+                            child: Text(
+                              j.transcript,
+                              style: TextStyle(
+                                color: vercelTextSecondary,
+                                fontSize: 13,
+                                fontStyle: FontStyle.italic,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (!isLast) const SizedBox(height: 12),
+                ],
+              );
+            }).toList()
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No journal entries yet',
+                style: TextStyle(color: vercelTextTertiary, fontSize: 14),
+              ),
+            ),
+        ],
       ),
     );
   }
