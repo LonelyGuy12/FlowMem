@@ -38,7 +38,6 @@ async def check_due_tasks():
                                             priority='high',
                                             notification=messaging.AndroidNotification(
                                                 sound='default',
-                                                channel_id='default',
                                             ),
                                         ),
                                         tokens=tokens
