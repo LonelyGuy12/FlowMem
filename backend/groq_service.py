@@ -1,7 +1,7 @@
 import json
 from groq import AsyncGroq
-from .config import settings
-from .schemas import FlowMemParsedPayload
+from config import settings
+from schemas import FlowMemParsedPayload
 
 client = AsyncGroq(api_key=settings.groq_api_key)
 
