@@ -176,6 +176,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
   }
+  String _formatDueTime(String isoString) {
+    try {
+      final dateTime = DateTime.parse(isoString).toLocal();
+      final now = DateTime.now();
+      
+      String twoDigits(int n) => n.toString().padLeft(2, '0');
+      String amPm = dateTime.hour >= 12 ? 'PM' : 'AM';
+      int hour12 = dateTime.hour > 12 ? dateTime.hour - 12 : (dateTime.hour == 0 ? 12 : dateTime.hour);
+      String timeString = '$hour12:${twoDigits(dateTime.minute)} $amPm';
+      
+      if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day) {
+        return 'Today, $timeString';
+      } else if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day + 1) {
+        return 'Tomorrow, $timeString';
+      } else {
+        return '${dateTime.month}/${dateTime.day}/${dateTime.year}, $timeString';
+      }
+    } catch (e) {
+      return isoString;
+    }
+  }
+
 
 
   Widget _buildCard({
@@ -425,7 +447,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          t.dueTime!,
+                                          _formatDueTime(t.dueTime!),
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: vercelTextTertiary,
