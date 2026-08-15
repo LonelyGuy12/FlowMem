@@ -587,9 +587,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _getMoodEmoji(String mood) {
     final moodLower = mood.toLowerCase();
-    if (moodLower.contains('happy') || moodLower.contains('great') || moodLower.contains('excited')) {
+    if (moodLower.contains('happy') || moodLower.contains('great') || moodLower.contains('excited') || moodLower.contains('well') || moodLower.contains('good') || moodLower.contains('fine')) {
       return '😊';
-    } else if (moodLower.contains('sad') || moodLower.contains('down')) {
+    } else if (moodLower.contains('sad') || moodLower.contains('down') || moodLower.contains('bad') || moodLower.contains('sick') || moodLower.contains('pain') || moodLower.contains('unwell')) {
       return '😔';
     } else if (moodLower.contains('stress') || moodLower.contains('anxious')) {
       return '😰';
@@ -600,7 +600,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else if (moodLower.contains('angry') || moodLower.contains('frustrated')) {
       return '😠';
     }
-    return '😊';
+    return '🤔'; // Neutral/unknown fallback instead of default happy
   }
 
   Widget _buildJournalCard(List<JournalEntry> journalEntries) {
