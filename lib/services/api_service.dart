@@ -38,4 +38,17 @@ class ApiService {
       return false;
     }
   }
+  Future<bool> registerToken(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/register-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'token': token}),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Exception registering token: $e');
+      return false;
+    }
+  }
 }

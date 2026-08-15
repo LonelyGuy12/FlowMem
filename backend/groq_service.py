@@ -19,16 +19,21 @@ async def transcribe_audio(file_bytes: bytes, filename: str = "audio.m4a") -> st
         raise
 
 async def parse_transcript(text: str) -> FlowMemParsedPayload:
-    prompt = """
+    import datetime
+    current_time_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    
+    prompt = f"""
     You are an AI assistant that extracts structured data from a user's spoken journal.
     Extract expenses, tasks, health logs, and write a brief journal summary.
+    Current time (UTC): {current_time_utc}
+    IMPORTANT: For tasks, if a due time is mentioned or implied, convert it to a strict absolute ISO-8601 timestamp string (e.g. 'YYYY-MM-DDTHH:MM:SSZ'). Assume the user's timezone is local but convert it to UTC for the output. If no time is specified, leave it null.
     Provide the output in JSON matching this schema exactly:
-    {
-      "expenses": [{"amount": float, "category": string, "currency": string}],
-      "tasks": [{"title": string, "due_time": string (optional), "priority": string ("low"|"medium"|"high")}],
-      "health_logs": [{"mood_or_state": string, "context_note": string (optional)}],
+    {{
+      "expenses": [{{"amount": float, "category": string, "currency": string}}],
+      "tasks": [{{"title": string, "due_time": string (ISO-8601 UTC or null), "priority": string ("low"|"medium"|"high")}}],
+      "health_logs": [{{"mood_or_state": string, "context_note": string (optional)}}],
       "journal_summary": string
-    }
+    }}
     """
     
     try:
