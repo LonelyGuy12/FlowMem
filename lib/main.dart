@@ -28,10 +28,10 @@ Future<void> _showInsistentNotification(RemoteMessage message) async {
       NotificationDetails(android: androidPlatformChannelSpecifics);
   
   await flutterLocalNotificationsPlugin.show(
-    message.hashCode,
-    message.data['title'] ?? 'Task Due!',
-    message.data['body'] ?? 'You have a task due now.',
-    platformChannelSpecifics,
+    id: message.hashCode,
+    title: message.data['title'] ?? 'Task Due!',
+    body: message.data['body'] ?? 'You have a task due now.',
+    notificationDetails: platformChannelSpecifics,
   );
 }
 
@@ -54,7 +54,7 @@ void main() async {
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(settings: initializationSettings);
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'alarm_clock_channel',
