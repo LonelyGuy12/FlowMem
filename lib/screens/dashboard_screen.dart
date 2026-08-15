@@ -33,10 +33,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
+      // With data-only payloads, message.notification is null, we check message.data
+      if (message.data.isNotEmpty || message.notification != null) {
+        final title = message.notification?.title ?? message.data['title'] ?? 'Task Due!';
+        final body = message.notification?.body ?? message.data['body'] ?? '';
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${message.notification?.title}: ${message.notification?.body}'),
+            content: Text('$title: $body'),
             backgroundColor: vercelAccent,
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 5),
