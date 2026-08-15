@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/recorder_widget.dart';
 import '../models/models.dart';
@@ -29,6 +30,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DashboardProvider>(context, listen: false).loadDashboard();
+    });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.notification != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${message.notification?.title}: ${message.notification?.body}'),
+            backgroundColor: vercelAccent,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        // Refresh dashboard so task can be marked notified (or updated)
+        Provider.of<DashboardProvider>(context, listen: false).loadDashboard();
+      }
     });
   }
 
